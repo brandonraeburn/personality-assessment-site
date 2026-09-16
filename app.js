@@ -122,7 +122,21 @@ function renderIntroPage() {
   screen.appendChild(
     el("p", { class: "lede" }, [
       document.createTextNode(
-        "This questionnaire is part of our graduate recruitment process. It contains 300 short statements about how you typically think, feel, and act. There are no right or wrong answers — please respond honestly and instinctively rather than trying to guess the “ideal” answer. It takes most people around 40–60 minutes to complete in one sitting, so please find a quiet moment before you start."
+        "This questionnaire is designed to help identify how your natural preferences and behaviours relate to different personality personas. It contains 300 short statements about how you typically think, feel, and act."
+      ),
+    ])
+  );
+  screen.appendChild(
+    el("p", { class: "lede" }, [
+      document.createTextNode(
+        "There are no right or wrong answers, and no persona is better than another. Each persona brings different perspectives, strengths, and ways of working. A balanced, effective team benefits from a variety of personas rather than one “ideal” personality type."
+      ),
+    ])
+  );
+  screen.appendChild(
+    el("p", { class: "lede" }, [
+      document.createTextNode(
+        "Please respond honestly and instinctively, based on what feels most natural to you. The questionnaire takes most people around 40–60 minutes to complete in one sitting, so please find a quiet moment before you begin."
       ),
     ])
   );
@@ -130,8 +144,26 @@ function renderIntroPage() {
   screen.appendChild(el("h2", {}, [document.createTextNode("How to answer")]));
   screen.appendChild(
     el("p", { class: "lede" }, [
+      document.createTextNode("For each statement, choose how accurately it describes you:"),
+    ])
+  );
+  screen.appendChild(
+    el(
+      "ul",
+      { class: "lede-list" },
+      [
+        "Very Inaccurate",
+        "Moderately Inaccurate",
+        "Neither Accurate nor Inaccurate",
+        "Moderately Accurate",
+        "Very Accurate",
+      ].map((label) => el("li", {}, [document.createTextNode(label)]))
+    )
+  );
+  screen.appendChild(
+    el("p", { class: "lede" }, [
       document.createTextNode(
-        "For each statement, choose how accurately it describes you, using: Very Inaccurate, Moderately Inaccurate, Neither Accurate Nor Inaccurate, Moderately Accurate, or Very Accurate. Your responses are kept confidential and used only for this recruitment process."
+        "Remember, there are no right or wrong responses. Your results are intended to provide insight into your individual preferences and the persona—or combination of personas—with which you most closely identify. Your responses will be kept confidential and used only for the stated purpose of the assessment."
       ),
     ])
   );
