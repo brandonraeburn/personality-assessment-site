@@ -172,6 +172,18 @@ function makeTextField(key, label, type, value, placeholder, required, extraAttr
     clearFieldError(key);
     saveDraft();
   });
+  if (type === "number") {
+    // Prevent the mouse-wheel from silently incrementing/decrementing the
+    // value when someone scrolls the page while their cursor happens to be
+    // over the field (a common accidental-edit trap on number inputs).
+    input.addEventListener(
+      "wheel",
+      (e) => {
+        input.blur();
+      },
+      { passive: true }
+    );
+  }
   field.appendChild(input);
   field.appendChild(el("div", { class: "field-error" }, [document.createTextNode(errorMessageFor(key))]));
   return field;
