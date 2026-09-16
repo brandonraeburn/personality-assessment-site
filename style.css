@@ -108,6 +108,15 @@ html, body {
   color: var(--color-text-muted);
   margin: 0 0 20px;
 }
+.lede-list {
+  color: var(--color-text-muted);
+  margin: 0 0 20px;
+  padding-left: 22px;
+}
+
+.lede-list li {
+  margin-bottom: 6px;
+}
 
 .card {
   background: var(--color-surface);
