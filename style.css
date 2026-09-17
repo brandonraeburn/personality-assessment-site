@@ -108,6 +108,7 @@ html, body {
   color: var(--color-text-muted);
   margin: 0 0 20px;
 }
+
 .lede-list {
   color: var(--color-text-muted);
   margin: 0 0 20px;
@@ -322,6 +323,61 @@ html, body {
 }
 
 .consent-row input { margin-top: 3px; }
+
+.privacy-notice {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 0 0 18px;
+  background: var(--color-bg);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.privacy-notice summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.privacy-notice[open] summary {
+  margin-bottom: 12px;
+}
+
+.privacy-notice p {
+  margin: 0 0 10px;
+}
+
+.privacy-notice p:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-notice strong {
+  color: var(--color-text);
+}
+
+.consent-block {
+  margin-bottom: 14px;
+}
+
+.consent-block:last-of-type {
+  margin-bottom: 4px;
+}
+
+.consent-block.has-error .consent-row {
+  color: var(--color-danger);
+}
+
+.consent-block.has-error .consent-row input {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.consent-block .field-error {
+  margin-top: 4px;
+  margin-left: 26px;
+}
 
 .thankyou h1 { margin-bottom: 12px; }
 

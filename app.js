@@ -10,6 +10,10 @@ const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycbxght_xjd9CCx_p
 const QUESTIONS_PER_PAGE = 30;
 const STORAGE_KEY = "personality-assessment-draft-v1";
 
+// Bump this whenever the wording of the privacy notice / consent statements
+// below changes, so submissions record which version a respondent agreed to.
+const PRIVACY_NOTICE_VERSION = "2026-09-17";
+
 // ---------------------------------------------------------------------------
 // Derived structure: page 0 = intro/demographics, pages 1..N = question
 // chunks, final page = thank you (only reached after a successful submit).
@@ -36,6 +40,7 @@ function questionRangeForPage(page) {
 const state = {
   page: INTRO_PAGE,
   demo: { name: "", email: "", sex: "", age: "" },
+  consent: { general: false, specialCategory: false },
   answers: new Array(TOTAL_QUESTIONS).fill(null), // each is option index 0-4 or null
   submitting: false,
   submitted: false,
@@ -48,6 +53,7 @@ function loadDraft() {
     const draft = JSON.parse(raw);
     if (draft && typeof draft === "object") {
       if (draft.demo) Object.assign(state.demo, draft.demo);
+      if (draft.consent) Object.assign(state.consent, draft.consent);
       if (Array.isArray(draft.answers) && draft.answers.length === TOTAL_QUESTIONS) {
         state.answers = draft.answers;
       }
@@ -62,7 +68,7 @@ function saveDraft() {
   try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ demo: state.demo, answers: state.answers, page: state.page })
+      JSON.stringify({ demo: state.demo, consent: state.consent, answers: state.answers, page: state.page })
     );
   } catch (e) {
     // ignore - draft autosave is a convenience, not a requirement
@@ -178,7 +184,98 @@ function renderIntroPage() {
   );
 
   screen.appendChild(card);
+
+  const consentCard = el("div", { class: "card" });
+  consentCard.appendChild(makePrivacyNoticeBlock());
+  consentCard.appendChild(
+    makeConsentCheckbox(
+      "general",
+      "I have read the privacy notice above and consent to Struckby Ltd collecting and processing my name, email, sex, age, and my responses to this assessment for the purposes described."
+    )
+  );
+  consentCard.appendChild(
+    makeConsentCheckbox(
+      "specialCategory",
+      "I understand that some statements in this assessment relate to my political opinions and religious beliefs, and I explicitly consent to Struckby Ltd processing this special category data as described above."
+    )
+  );
+  screen.appendChild(consentCard);
+
   return screen;
+}
+
+function makePrivacyNoticeBlock() {
+  const details = el("details", { class: "privacy-notice" });
+  details.appendChild(
+    el("summary", {}, [document.createTextNode("Privacy notice — how we use your information")])
+  );
+
+  const paragraphs = [
+    [
+      "b:Data controller: ",
+      "Struckby Ltd (\u201cStruckby\u201d, \u201cwe\u201d, \u201cus\u201d). Contact: brandon.raeburn@struckby.co.uk",
+    ],
+    [
+      "b:What we collect: ",
+      "your name, email address, sex, and age, together with your responses to the 300 statements in this assessment. A small number of those statements relate to your political opinions and religious beliefs, which UK GDPR classes as \u201cspecial category data.\u201d",
+    ],
+    [
+      "b:Why we collect it: ",
+      "to assess your personality profile as part of our recruitment and candidate-placement service, and — where you go on to join our talent pool — to help match you to further roles we think may suit you.",
+    ],
+    [
+      "b:Legal basis: ",
+      "we process this data on the basis of your consent (UK GDPR Article 6(1)(a)), and, for the political-opinion and religious-belief statements, your explicit consent (Article 9(2)(a)). You can withdraw consent at any time by emailing us; this won\u2019t affect anything we\u2019ve already done with your data.",
+    ],
+    [
+      "b:Who sees it: ",
+      "your responses are stored in a Google Sheet via Google\u2019s infrastructure, which acts as our data processor. Google may process data outside the UK/EEA; where it does, this is covered by its standard contractual clauses. We don\u2019t sell your data or share it with third parties beyond what\u2019s needed to run this service.",
+    ],
+    [
+      "b:How long we keep it: ",
+      "if you don\u2019t go on to join our talent pool, we anonymise your responses (removing your name, email, and other identifying details) within 12 months of submission; we may keep the anonymised results afterwards to help build scoring benchmarks. If you do join our talent pool, we keep your full responses for up to 5 years so we can consider you for further roles, after which we\u2019ll delete them or ask you to reconfirm your consent.",
+    ],
+    [
+      "b:Your rights: ",
+      "you can ask us to give you a copy of your data, correct it, delete it, restrict how we use it, or provide it to you in a portable format, and you can object to our processing at any time. Email brandon.raeburn@struckby.co.uk to exercise any of these. If you\u2019re unhappy with how we\u2019ve handled your data, you can also complain to the UK Information Commissioner\u2019s Office (ico.org.uk).",
+    ],
+  ];
+
+  paragraphs.forEach(([lead, rest]) => {
+    const p = el("p", {});
+    const label = lead.replace(/^b:/, "");
+    p.appendChild(el("strong", {}, [document.createTextNode(label)]));
+    p.appendChild(document.createTextNode(rest));
+    details.appendChild(p);
+  });
+
+  return details;
+}
+
+function makeConsentCheckbox(key, labelText) {
+  const block = el("div", { class: "consent-block", id: `consent-${key}` });
+  const row = el("label", { class: "consent-row" });
+  const input = el("input", { type: "checkbox", id: `input-consent-${key}` });
+  if (state.consent[key]) input.setAttribute("checked", "checked");
+  input.addEventListener("change", (e) => {
+    state.consent[key] = e.target.checked;
+    clearConsentError(key);
+    saveDraft();
+  });
+  row.appendChild(input);
+  row.appendChild(document.createTextNode(labelText));
+  block.appendChild(row);
+  block.appendChild(
+    el("div", { class: "field-error" }, [
+      document.createTextNode("Please confirm this before continuing."),
+    ])
+  );
+  return block;
+}
+
+function clearConsentError(key) {
+  const block = document.getElementById(`consent-${key}`);
+  if (block) block.classList.remove("has-error");
 }
 
 function makeTextField(key, label, type, value, placeholder, required, extraAttrs) {
@@ -420,7 +517,16 @@ function validateIntro() {
     valid = false;
   }
 
-  if (!valid) showToast("Please fill in all fields before continuing.");
+  if (!state.consent.general) {
+    document.getElementById("consent-general").classList.add("has-error");
+    valid = false;
+  }
+  if (!state.consent.specialCategory) {
+    document.getElementById("consent-specialCategory").classList.add("has-error");
+    valid = false;
+  }
+
+  if (!valid) showToast("Please fill in all fields and confirm both consent checkboxes before continuing.");
   return valid;
 }
 
@@ -455,6 +561,11 @@ function buildSubmissionPayload() {
     email: state.demo.email.trim(),
     sex: state.demo.sex,
     age: Number(state.demo.age),
+    consent: {
+      general: !!state.consent.general,
+      specialCategory: !!state.consent.specialCategory,
+      privacyNoticeVersion: PRIVACY_NOTICE_VERSION,
+    },
     answers: state.answers.map((optionIndex, i) => ({
       question: i + 1,
       answerIndex: optionIndex,
