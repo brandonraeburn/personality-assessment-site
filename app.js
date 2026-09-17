@@ -136,7 +136,7 @@ function renderIntroPage() {
   screen.appendChild(
     el("p", { class: "lede" }, [
       document.createTextNode(
-        "Please respond honestly and instinctively, based on what feels most natural to you. The questionnaire takes most people around 40–60 minutes to complete in one sitting, so please find a quiet moment before you begin."
+        "Please respond honestly and instinctively, based on what feels most natural to you. The questionnaire takes most people around 30 minutes to complete in one sitting, so please find a quiet moment before you begin."
       ),
     ])
   );
